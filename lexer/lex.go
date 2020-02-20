@@ -19,7 +19,7 @@ func (t Token) String() string {
             return string(v)
         case []byte:
             return string(v)
-        case int64:
+        case int:
             return strconv.Itoa(int(v))
         default:
             return "Unknown token"
