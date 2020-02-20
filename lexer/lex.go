@@ -13,8 +13,11 @@ type Token struct {
 }
 
 func (t Token) String() string {
+    // TODO: categorize by type, not value type
     switch v := t.Value.(type) {
         case byte:
+            return string(v)
+        case []byte:
             return string(v)
         case int64:
             return strconv.Itoa(int(v))
@@ -47,7 +50,7 @@ func Lex(in []byte) ([]Token, error) {
 }
 
 func readToken(bp *bufpos) (Token, error) {
-    eatWhitespace(bp)
+    readWhile(bp, []byte(" \n\r\t")) // Cut whitespace
     if len(bp.buf) - bp.pos == 0 {
         return Token{}, EOF
     }
@@ -58,15 +61,34 @@ func readToken(bp *bufpos) (Token, error) {
             return Token{OperatorToken, bp.pos-1, 1, bp.buf[bp.pos-1]}, nil
         case '0','1','2','3','4','5','6','7','8','9':
             return readNumber(bp)
+        case '"':
+            return readString(bp)
     }
 
     return Token{}, (*InvalidTokenError)(bp)
 }
 
+func readString(bp *bufpos) (Token, error) {
+    var strbuf []byte
+    initialPos := bp.pos
+    bp.pos++ // Skip quote
+    for bp.len() > 0{
+        if bp.buf[bp.pos] == '"' {
+            bp.pos++ // Skip quote
+            return Token{StringToken, initialPos, bp.pos-initialPos, strbuf}, nil
+        } else {
+            strbuf = append(strbuf, bp.buf[bp.pos])
+            bp.pos++
+        }
+    }
+    // TODO: fix error
+    return Token{}, EOF
+}
+
 // TODO: float support
 func readNumber(bp *bufpos) (Token, error) {
     initialPos := bp.pos
-    num := readAny(bp, []byte("1234567890abcdefx"))
+    num := readWhile(bp, []byte("1234567890abcdefx"))
     i, err := strconv.ParseInt(string(num), 0, 0)
     if err != nil {
         return Token{}, &NumberSyntaxError{bp, err.(*strconv.NumError)}
@@ -76,20 +98,13 @@ func readNumber(bp *bufpos) (Token, error) {
 }
 
 
-// Helper functions
-func readAny(bp *bufpos, chars []byte) []byte {
+// Reads a byte array until it doesnt match a char in the chars array
+func readWhile(bp *bufpos, chars []byte) []byte {
     initialPos := bp.pos
     for bp.len() > 0 && bytes.ContainsRune(chars, rune(bp.buf[bp.pos])) {
         bp.pos++
     }
     return bp.buf[initialPos:bp.pos]
-}
-
-// TODO: replace with readAny
-func eatWhitespace(bp *bufpos) {
-    for bp.len() > 0 && bytes.ContainsRune([]byte(" \n\r\t"), rune(bp.buf[bp.pos])) {
-        bp.pos++
-    }
 }
 
 func (b *bufpos) len() int {

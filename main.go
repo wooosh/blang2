@@ -7,7 +7,7 @@ import (
 
 
 func main() {
-    toks, err := lexer.Lex([]byte("1f0+0xf -\n 0b0110"))
+    toks, err := lexer.Lex([]byte("\"hello\" -\n 0b0110"))
     if err != nil {
         fmt.Println(err)
     } else {

@@ -3,5 +3,6 @@ package lexer
 type TokenType uint
 const (
     NumberToken TokenType = iota
-    OperatorToken
+    OperatorToken // TODO: replace operators with identifiers
+    StringToken
 )
