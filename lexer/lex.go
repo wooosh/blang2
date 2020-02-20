@@ -6,14 +6,14 @@ import (
 )
 
 type Token struct {
-    typeOf TokenType
-    pos int // Starting position in file
-    length int
-    value interface{}
+    TypeOf TokenType
+    Pos int // Starting position in file
+    Length int
+    Value interface{}
 }
 
 func (t Token) String() string {
-    switch v := t.value.(type) {
+    switch v := t.Value.(type) {
         case byte:
             return string(v)
         case int64:
@@ -66,12 +66,12 @@ func readToken(bp *bufpos) (Token, error) {
 // TODO: float support
 func readNumber(bp *bufpos) (Token, error) {
     initialPos := bp.pos
-    num := readAny(bp, []byte("1234567890abcdef"))
+    num := readAny(bp, []byte("1234567890abcdefx"))
     i, err := strconv.ParseInt(string(num), 0, 0)
     if err != nil {
         return Token{}, &NumberSyntaxError{bp, err.(*strconv.NumError)}
     } else {
-        return Token{NumberToken, initialPos, bp.pos - initialPos, i}, err
+        return Token{NumberToken, initialPos, bp.pos - initialPos, int(i)}, err
     }
 }
 
