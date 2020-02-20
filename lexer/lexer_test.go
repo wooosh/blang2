@@ -10,19 +10,19 @@ func testToken(in string, tokType TokenType, expectedValue interface{}) func (*t
     return func(t *testing.T) {
         tokens, err := Lex([]byte(in))
         if err != nil {
-            t.Error(err)
+            t.Fatal(err)
         }
         if len(tokens) != 1 {
-            t.Error("Expected 1 token, recieved", len(tokens))
+            t.Fatal("Expected 1 token, recieved", len(tokens))
         }
         tok := tokens[0]
 
         if tokType != tok.TypeOf {
-            t.Error("Expected token type", tokType, "recieved", tok.TypeOf)
+            t.Fatal("Expected token type", tokType, "recieved", tok.TypeOf)
         }
 
         if !reflect.DeepEqual(expectedValue, tok.Value) {
-            t.Error("Expected value and recived value do not match.")
+            t.Fatal("Expected value and recived value do not match.")
         }
 
     }
