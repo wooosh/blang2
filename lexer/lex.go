@@ -31,21 +31,26 @@ type bufpos struct {
 }
 
 // TODO: return multiple errors
-func Lex(in []byte) ([]Token, error) {
+func Lex(in []byte) ([]Token, []error) {
     bp := bufpos{in, 0}
     var tokens []Token
+    var errors []error
     for {
         tok, err := readToken(&bp);
         if err == EOF {
             break
         }
         if err != nil {
-            return tokens, err
+            errors = append(errors, err)
+            if _, ok := err.(*InvalidTokenError); ok {
+                break
+            }
+
         }
         tokens = append(tokens, tok)
     }
 
-    return tokens, nil
+    return tokens, errors
 }
 
 func readToken(bp *bufpos) (Token, error) {
