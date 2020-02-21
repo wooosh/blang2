@@ -9,6 +9,11 @@ import (
 var EOF error
 type InvalidTokenError bufpos
 type NonTerminatedStringError bufpos
+type InvalidEscapeCodeError struct {
+    bp *bufpos
+    escape []byte
+}
+
 type NumberSyntaxError struct {
     bp *bufpos
     numError *strconv.NumError
@@ -35,6 +40,10 @@ func lineStr(bp *bufpos) string {
 
 func (e *NumberSyntaxError) Error() string {
     return lineStr(e.bp) + " Cannot parse number '" + e.numError.Num + "'"
+}
+
+func (e *InvalidEscapeCodeError) Error() string {
+    return lineStr(e.bp) + " Invalid escape code '" + string(e.escape) + "'"
 }
 
 func (e *NonTerminatedStringError) Error() string {

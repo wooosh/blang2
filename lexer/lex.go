@@ -54,6 +54,7 @@ func Lex(in []byte) ([]Token, []error) {
     return tokens, errors
 }
 
+// TODO: allow returning multiple errors
 func readToken(bp *bufpos) (Token, error) {
     readWhile(bp, []byte(" \n\r\t")) // Cut whitespace
     if len(bp.buf) - bp.pos == 0 {
@@ -76,10 +77,11 @@ func readToken(bp *bufpos) (Token, error) {
 }
 
 func readString(bp *bufpos) (Token, error) {
+    // TODO: bounds checking for each ++
     var strbuf []byte
     initialPos := bp.pos
     bp.pos++ // Skip quote
-    for bp.len() > 0{
+    for bp.len() > 0 {
         if bp.buf[bp.pos] == '"' {
             bp.pos++ // Skip quote
             return Token{StringToken, initialPos, bp.pos-initialPos, strbuf}, nil
@@ -102,6 +104,10 @@ func readString(bp *bufpos) (Token, error) {
                     char = '\r'
                 case '"':
                     char = '"'
+                default:
+                    // TODO: recovery to skip to try to read rest of token
+                    bp.pos++
+                    return Token{}, &InvalidEscapeCodeError{bp.copyAt(bp.pos-2), bp.buf[bp.pos-2:bp.pos]}
             }
             bp.pos++
             strbuf = append(strbuf, char)
