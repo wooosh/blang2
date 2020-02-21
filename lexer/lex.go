@@ -57,11 +57,14 @@ func Lex(in []byte) ([]Token, []error) {
 // TODO: allow returning multiple errors
 func readToken(bp *bufpos) (Token, error) {
     readWhile(bp, []byte(" \n\r\t")) // Cut whitespace
-    if len(bp.buf) - bp.pos == 0 {
+
+    char, eof := bp.peek()
+
+    if eof {
         return Token{}, EOF
     }
 
-    switch(bp.buf[bp.pos]) {
+    switch(char) {
         case '+', '-', '*':
             bp.pos++
             return Token{OperatorToken, bp.pos-1, 1, bp.buf[bp.pos-1]}, nil
@@ -71,8 +74,7 @@ func readToken(bp *bufpos) (Token, error) {
             return readString(bp)
     }
 
-    // Don't need to copy the buffer pointer because this will always stop the
-    // lexer
+    // TODO: fix error handling
     return Token{}, (*InvalidTokenError)(bp)
 }
 
@@ -165,14 +167,23 @@ func (b *bufpos) copyAt(pos int) *bufpos {
     return b2
 }
 
-// Returns the byte and a boolean representing whether or not it could read
+// Returns the byte and a boolean that is true when it cannot read
 func (bp *bufpos) readByte() (byte, bool) {
     if bp.len() == 0 {
-        return 0, false
+        return 0, true
     } else {
         bp.pos++
-        return bp.buf[bp.pos], true
+        return bp.buf[bp.pos], false
     }
+}
+
+func (bp *bufpos) peek() (byte, bool) {
+    if bp.len() == 0 {
+        return 0, true
+    } else {
+        return bp.buf[bp.pos], false
+    }
+
 }
 
 func (b *bufpos) len() int {
