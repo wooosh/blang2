@@ -41,6 +41,7 @@ func Lex(in []byte) ([]Token, []error) {
             break
         }
         if err != nil {
+            // TODO: copy bufpos in error so that the index works properly
             errors = append(errors, err)
             if _, ok := err.(*InvalidTokenError); ok {
                 break
@@ -81,6 +82,7 @@ func readString(bp *bufpos) (Token, error) {
             bp.pos++ // Skip quote
             return Token{StringToken, initialPos, bp.pos-initialPos, strbuf}, nil
         } else if bp.buf[bp.pos] == '\\' {
+            // TODO: move escape code parser into another function
             // TODO: octal and hex support
             bp.pos++
             var char byte
@@ -105,8 +107,7 @@ func readString(bp *bufpos) (Token, error) {
             bp.pos++
         }
     }
-    // TODO: fix error
-    return Token{}, EOF
+    return Token{}, (*NonTerminatedStringError)(bp)
 }
 
 // TODO: float support

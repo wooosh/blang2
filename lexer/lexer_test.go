@@ -5,6 +5,7 @@ import (
     "testing"
 )
 
+// TODO: error testing
 // TODO: integration testing
 func testToken(in string, tokType TokenType, expectedValue interface{}) func (*testing.T) {
     return func(t *testing.T) {

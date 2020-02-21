@@ -7,7 +7,7 @@ import (
 
 
 func main() {
-    toks, errors := lexer.Lex([]byte(`0x32x324 0fff0x`))
+    toks, errors := lexer.Lex([]byte(`0xf23x23 "312`))
     if errors != nil {
         for _, err := range errors {
             fmt.Println(err)

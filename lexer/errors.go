@@ -8,6 +8,7 @@ import (
 
 var EOF error
 type InvalidTokenError bufpos
+type NonTerminatedStringError bufpos
 type NumberSyntaxError struct {
     bp *bufpos
     numError *strconv.NumError
@@ -34,6 +35,10 @@ func lineStr(bp *bufpos) string {
 
 func (e *NumberSyntaxError) Error() string {
     return lineStr(e.bp) + " Cannot parse number '" + e.numError.Num + "'"
+}
+
+func (e *NonTerminatedStringError) Error() string {
+    return lineStr((*bufpos)(e)) + " String does not terminate"
 }
 
 func (e *InvalidTokenError) Error() string {
