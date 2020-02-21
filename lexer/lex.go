@@ -70,6 +70,8 @@ func readToken(bp *bufpos) (Token, error) {
             return readString(bp)
     }
 
+    // Don't need to copy the buffer pointer because this will always stop the
+    // lexer
     return Token{}, (*InvalidTokenError)(bp)
 }
 
@@ -107,7 +109,7 @@ func readString(bp *bufpos) (Token, error) {
             bp.pos++
         }
     }
-    return Token{}, (*NonTerminatedStringError)(bp)
+    return Token{}, (*NonTerminatedStringError)(bp.copy())
 }
 
 // TODO: float support
@@ -116,7 +118,7 @@ func readNumber(bp *bufpos) (Token, error) {
     num := readWhile(bp, []byte("1234567890abcdefx"))
     i, err := strconv.ParseInt(string(num), 0, 0)
     if err != nil {
-        return Token{}, &NumberSyntaxError{bp, err.(*strconv.NumError)}
+        return Token{}, &NumberSyntaxError{bp.copy(), err.(*strconv.NumError)}
     } else {
         return Token{NumberToken, initialPos, bp.pos - initialPos, int(i)}, err
     }
@@ -130,6 +132,11 @@ func readWhile(bp *bufpos, chars []byte) []byte {
         bp.pos++
     }
     return bp.buf[initialPos:bp.pos]
+}
+
+func (b *bufpos) copy() *bufpos {
+    var b2 bufpos = *b
+    return &b2
 }
 
 func (b *bufpos) len() int {
