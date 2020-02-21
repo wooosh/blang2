@@ -13,7 +13,6 @@ type Token struct {
 }
 
 func (t Token) String() string {
-    // TODO: categorize by type, not value type
     switch v := t.Value.(type) {
         case byte:
             return string(v)
@@ -76,6 +75,24 @@ func readString(bp *bufpos) (Token, error) {
         if bp.buf[bp.pos] == '"' {
             bp.pos++ // Skip quote
             return Token{StringToken, initialPos, bp.pos-initialPos, strbuf}, nil
+        } else if bp.buf[bp.pos] == '\\' {
+            // TODO: octal and hex support
+            bp.pos++
+            var char byte
+            switch(bp.buf[bp.pos]) {
+                case '\\':
+                    char = '\\'
+                case 'n':
+                    char = '\n'
+                case 't':
+                    char = '\t'
+                case 'e':
+                    char = '\x1b'
+                case '"':
+                    char = '"'
+            }
+            bp.pos++
+            strbuf = append(strbuf, char)
         } else {
             strbuf = append(strbuf, bp.buf[bp.pos])
             bp.pos++
