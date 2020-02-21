@@ -86,6 +86,7 @@ func readString(bp *bufpos) (Token, error) {
         } else if bp.buf[bp.pos] == '\\' {
             // TODO: move escape code parser into another function
             // TODO: octal and hex support
+            // TODO: error out on invalid escape sequences
             bp.pos++
             var char byte
             switch(bp.buf[bp.pos]) {
@@ -109,7 +110,7 @@ func readString(bp *bufpos) (Token, error) {
             bp.pos++
         }
     }
-    return Token{}, (*NonTerminatedStringError)(bp.copy())
+    return Token{}, (*NonTerminatedStringError)(bp.copyAt(initialPos))
 }
 
 // TODO: float support
@@ -118,7 +119,7 @@ func readNumber(bp *bufpos) (Token, error) {
     num := readWhile(bp, []byte("1234567890abcdefx"))
     i, err := strconv.ParseInt(string(num), 0, 0)
     if err != nil {
-        return Token{}, &NumberSyntaxError{bp.copy(), err.(*strconv.NumError)}
+        return Token{}, &NumberSyntaxError{bp.copyAt(initialPos), err.(*strconv.NumError)}
     } else {
         return Token{NumberToken, initialPos, bp.pos - initialPos, int(i)}, err
     }
@@ -138,6 +139,13 @@ func (b *bufpos) copy() *bufpos {
     var b2 bufpos = *b
     return &b2
 }
+
+func (b *bufpos) copyAt(pos int) *bufpos {
+    b2 := b.copy()
+    b2.pos = pos
+    return b2
+}
+
 
 func (b *bufpos) len() int {
     return len(b.buf) - b.pos
