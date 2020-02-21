@@ -27,8 +27,25 @@ func testToken(in string, tokType TokenType, expectedValue interface{}) func (*t
 
     }
 }
+
 func TestNumbers(t *testing.T) {
     t.Run("Decimal Integers", testToken("1234567890", NumberToken, 1234567890))
     t.Run("Hexadecimal Integers", testToken("0x1234567890abcdef", NumberToken, 0x1234567890abcdef))
     t.Run("Binary Integers", testToken("0b1100110101", NumberToken, 0b1100110101))
+}
+
+func TestStrings(t *testing.T) {
+    // TODO: literal strings (ignore escape sequences)
+    t.Run("Regular String", testToken(`"abcdefg1234"`, StringToken, []byte("abcdefg1234")))
+    escapeSequences := map[string][]byte{
+        `\n`: []byte{'\n'},
+        `\t`: []byte{'\t'},
+        `\r`: []byte{'\r'},
+        `\e`: []byte{'\x1b'},
+        `\\`: []byte{'\\'},
+        `\"`: []byte{'"'},
+    }
+    for k,v := range escapeSequences {
+        t.Run("Escape Sequence '" + k + "'", testToken(`"` + k + `"`, StringToken, v))
+    }
 }

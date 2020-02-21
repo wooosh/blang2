@@ -88,6 +88,8 @@ func readString(bp *bufpos) (Token, error) {
                     char = '\t'
                 case 'e':
                     char = '\x1b'
+                case 'r':
+                    char = '\r'
                 case '"':
                     char = '"'
             }
