@@ -9,9 +9,9 @@ import (
 // TODO: integration testing
 func testToken(in string, tokType TokenType, expectedValue interface{}) func (*testing.T) {
     return func(t *testing.T) {
-        tokens, err := Lex([]byte(in))
-        if err != nil {
-            t.Fatal(err)
+        tokens, errors := Lex([]byte(in))
+        if errors != nil {
+            t.Fatal(errors)
         }
         if len(tokens) != 1 {
             t.Fatal("Expected 1 token, recieved", len(tokens))
@@ -48,5 +48,23 @@ func TestStrings(t *testing.T) {
     }
     for k,v := range escapeSequences {
         t.Run("Escape Sequence '" + k + "'", testToken(`"` + k + `"`, StringToken, v))
+    }
+}
+
+func TestMultipleErrors(t *testing.T) {
+    _, errs := Lex([]byte(`0xx "aaa`))
+    if len(errs) != 2 {
+        t.Fatal("Recieved", len(errs), "errors, expected 2")
+    }
+
+    e1, ok1 := errs[0].(*NumberSyntaxError)
+    e2, ok2 := errs[1].(*NonTerminatedStringError)
+
+    if !ok1 || !ok2 {
+        t.Fatal("Recieved unexpected error type")
+    }
+
+    if e1.Error()[:3] != "0:0" || e2.Error()[:3] != "0:4" {
+        t.Fatal("Recieved invalid position numbers in error")
     }
 }
