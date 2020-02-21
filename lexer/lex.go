@@ -76,6 +76,42 @@ func readToken(bp *bufpos) (Token, error) {
     return Token{}, (*InvalidTokenError)(bp)
 }
 
+func readByteWithEscapeCode(bp *bufpos) (byte, error) {
+    // TODO: octal + hex support
+    if bp.buf[bp.pos] == '\\' {
+        bp.pos++
+        var char byte
+        switch(bp.buf[bp.pos]) {
+            case '\\':
+                char = '\\'
+            case 'n':
+                char = '\n'
+            case 't':
+                char = '\t'
+            case 'e':
+                char = '\x1b'
+            case 'r':
+                char = '\r'
+            case '"':
+                char = '"'
+            default:
+                // TODO: recovery to skip to try to read rest of token
+                bp.pos++
+                return '?', &InvalidEscapeCodeError{bp.copyAt(bp.pos-2), bp.buf[bp.pos-2:bp.pos]}
+            }
+            if bp.len() > 0 {
+                bp.pos++
+            }
+            return char, nil
+
+    } else {
+        if bp.len() > 0 {
+            bp.pos++
+        }
+        return bp.buf[bp.pos-1], nil
+    }
+}
+
 func readString(bp *bufpos) (Token, error) {
     // TODO: bounds checking for each ++
     var strbuf []byte
@@ -83,38 +119,15 @@ func readString(bp *bufpos) (Token, error) {
     bp.pos++ // Skip quote
     for bp.len() > 0 {
         if bp.buf[bp.pos] == '"' {
-            bp.pos++ // Skip quote
-            return Token{StringToken, initialPos, bp.pos-initialPos, strbuf}, nil
-        } else if bp.buf[bp.pos] == '\\' {
-            // TODO: move escape code parser into another function
-            // TODO: octal and hex support
-            // TODO: error out on invalid escape sequences
             bp.pos++
-            var char byte
-            switch(bp.buf[bp.pos]) {
-                case '\\':
-                    char = '\\'
-                case 'n':
-                    char = '\n'
-                case 't':
-                    char = '\t'
-                case 'e':
-                    char = '\x1b'
-                case 'r':
-                    char = '\r'
-                case '"':
-                    char = '"'
-                default:
-                    // TODO: recovery to skip to try to read rest of token
-                    bp.pos++
-                    return Token{}, &InvalidEscapeCodeError{bp.copyAt(bp.pos-2), bp.buf[bp.pos-2:bp.pos]}
-            }
-            bp.pos++
-            strbuf = append(strbuf, char)
-        } else {
-            strbuf = append(strbuf, bp.buf[bp.pos])
-            bp.pos++
+            return Token{StringToken, initialPos, len(strbuf), strbuf}, nil
         }
+        char, err := readByteWithEscapeCode(bp)
+        if err != nil {
+            return Token{}, err
+        }
+
+        strbuf = append(strbuf, char)
     }
     return Token{}, (*NonTerminatedStringError)(bp.copyAt(initialPos))
 }
