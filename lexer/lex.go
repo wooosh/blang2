@@ -165,6 +165,15 @@ func (b *bufpos) copyAt(pos int) *bufpos {
     return b2
 }
 
+// Returns the byte and a boolean representing whether or not it could read
+func (bp *bufpos) readByte() (byte, bool) {
+    if bp.len() == 0 {
+        return 0, false
+    } else {
+        bp.pos++
+        return bp.buf[bp.pos], true
+    }
+}
 
 func (b *bufpos) len() int {
     return len(b.buf) - b.pos
