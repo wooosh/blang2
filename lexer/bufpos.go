@@ -64,5 +64,14 @@ func (b *bufpos) len() int {
     return len(b.buf) - b.pos
 }
 
-
-
+// Reads if it matches the pattern, otherwise unreads
+func (bp *bufpos) match(str string) bool {
+    for i, v := range []byte(str) {
+        char, eof := bp.readByte()
+        if eof || char != v {
+            bp.pos -= i + 1
+            return false
+        }
+    }
+    return true
+}

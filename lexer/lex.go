@@ -10,6 +10,21 @@ type Token struct {
 }
 
 func (t Token) String() string {
+    switch t.TypeOf {
+        case Fn: return "fn"
+        case If: return "if"
+        case Else: return "else"
+        case While: return "while"
+        case Return: return "return"
+        case Try: return "try"
+        case True: return "true"
+        case False: return "false"
+        case LBrace: return "{"
+        case RBrace: return "}"
+        case LParen: return "("
+        case RParen: return ")"
+        case Comma: return ","
+    }
     switch v := t.Value.(type) {
         case byte:
             return string(v)
@@ -48,18 +63,53 @@ func Lex(in []byte) ([]Token, []error) {
 // TODO: allow returning multiple errors
 func readToken(bp *bufpos) (Token, error) {
     readWhile(bp, []byte(" \n\r\t")) // Cut whitespace
-    char, eof := bp.peek()
+
+    if bp.match("fn") {
+        return Token{Fn, bp.pos-2, 2, nil}, nil
+    } else if bp.match("return") {
+        return Token{Return, bp.pos-6, 6, nil}, nil
+    } else if bp.match("if") {
+        return Token{If, bp.pos-2, 2, nil}, nil
+    } else if bp.match("else") {
+        return Token{Else, bp.pos-4, 4, nil}, nil
+    } else if bp.match("while") {
+        return Token{While, bp.pos-5, 5, nil}, nil
+    } else if bp.match("try") {
+        return Token{Try, bp.pos-3, 3, nil}, nil
+    } else if bp.match("true") {
+        return Token{True, bp.pos-4, 4, nil}, nil
+    } else if bp.match("false") {
+        return Token{False, bp.pos-5, 5, nil}, nil
+    }
+
+    char, eof := bp.readByte()
     if eof {
         return Token{}, EOF
     }
 
     switch(char) {
-        case '+', '-', '*':
-            bp.readByte()
+        // Symbols
+        case '{':
+            return Token{LBrace, bp.pos-1, 1, nil}, nil
+        case '}':
+            return Token{RBrace, bp.pos-1, 1, nil}, nil
+        case '(':
+            return Token{LParen, bp.pos-1, 1, nil}, nil
+        case ')':
+            return Token{RParen, bp.pos-1, 1, nil}, nil
+        case ',':
+            return Token{Comma, bp.pos-1, 1, nil}, nil
+
+        // Values
+        // TODO: add support for boolean and bitwise
+        // TODO: add a operator type enum
+        case '+', '-', '*', '/', '%':
             return Token{OperatorToken, bp.pos-1, 1, bp.buf[bp.pos-1]}, nil
         case '0','1','2','3','4','5','6','7','8','9':
+            bp.unreadByte()
             return readNumber(bp)
         case '"':
+            bp.unreadByte()
             return readString(bp)
     }
 
