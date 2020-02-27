@@ -1,5 +1,6 @@
 package lexer
 
+// TODO: testing for symbols and keywords
 import "strconv"
 
 type Token struct {
@@ -64,6 +65,7 @@ func Lex(in []byte) ([]Token, []error) {
 func readToken(bp *bufpos) (Token, error) {
     readWhile(bp, []byte(" \n\r\t")) // Cut whitespace
 
+    // TODO: prevent identifiers starting with a keyword from registering as a keyword (eg typeOf)
     if bp.match("fn") {
         return Token{Fn, bp.pos-2, 2, nil}, nil
     } else if bp.match("return") {
@@ -111,9 +113,16 @@ func readToken(bp *bufpos) (Token, error) {
         case '"':
             bp.unreadByte()
             return readString(bp)
+        default:
+            // TODO: make readWhile a member func
+    }
+    bp.unreadByte()
+
+    name := readWhile(bp, []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"))
+    if len(name) > 0 {
+        return Token{IdentifierToken, bp.pos - len(name), len(name), name}, nil
     }
 
-    // TODO: fix error handling
     return Token{}, (*InvalidTokenError)(bp)
 }
 

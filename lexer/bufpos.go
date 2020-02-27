@@ -64,6 +64,7 @@ func (b *bufpos) len() int {
     return len(b.buf) - b.pos
 }
 
+// TODO: needs tests
 // Reads if it matches the pattern, otherwise unreads
 func (bp *bufpos) match(str string) bool {
     for i, v := range []byte(str) {
