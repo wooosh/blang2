@@ -42,9 +42,6 @@ func (bp *bufpos) readByte() (byte, bool) {
         bp.pos++
         return 0, true
     }
-
-    bp.pos++
-    return bp.peek()
 }
 
 func (bp *bufpos) peek() (byte, bool) {

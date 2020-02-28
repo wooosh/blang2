@@ -4,7 +4,6 @@ type TokenType uint
 const (
     // Values
     NumberToken TokenType = iota
-    OperatorToken // TODO: replace operators with identifiers
     StringToken
     IdentifierToken
 

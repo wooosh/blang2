@@ -106,7 +106,7 @@ func readToken(bp *bufpos) (Token, error) {
         // TODO: add support for boolean and bitwise
         // TODO: add a operator type enum
         case '+', '-', '*', '/', '%':
-            return Token{OperatorToken, bp.pos-1, 1, bp.buf[bp.pos-1]}, nil
+            return Token{IdentifierToken, bp.pos-1, 1, bp.buf[bp.pos-1:bp.pos]}, nil
         case '0','1','2','3','4','5','6','7','8','9':
             bp.unreadByte()
             return readNumber(bp)
