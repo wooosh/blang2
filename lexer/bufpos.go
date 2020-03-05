@@ -10,13 +10,14 @@ type bufpos struct {
 // Reads a byte array until it doesnt match a char in the chars array
 func readWhile(bp *bufpos, chars []byte) []byte {
     initialPos := bp.pos
+    _, eof := bp.peek()
+    if eof {
+        return []byte{}
+    }
     for {
         char, eof := bp.readByte()
-        if !bytes.ContainsRune(chars, rune(char)) {
+        if eof || !bytes.ContainsRune(chars, rune(char)) {
             bp.unreadByte()
-            return bp.buf[initialPos:bp.pos]
-        }
-        if eof {
             return bp.buf[initialPos:bp.pos]
         }
     }

@@ -38,7 +38,6 @@ func (t Token) String() string {
     }
 }
 
-// TODO: return multiple errors
 func Lex(in []byte) ([]Token, []error) {
     bp := bufpos{in, 0}
     var tokens []Token
@@ -104,7 +103,6 @@ func readToken(bp *bufpos) (Token, error) {
 
         // Values
         // TODO: add support for boolean and bitwise
-        // TODO: add a operator type enum
         case '+', '-', '*', '/', '%':
             return Token{IdentifierToken, bp.pos-1, 1, bp.buf[bp.pos-1:bp.pos]}, nil
         case '0','1','2','3','4','5','6','7','8','9':
@@ -130,14 +128,13 @@ func readByteWithEscapeCode(bp *bufpos) (byte, error) {
     // TODO: octal + hex support
     char, eof := bp.readByte()
     if eof {
-        panic("unexpected EOF")
+        return 0, EOF
     }
     if char == '\\' {
         var val byte
         char, eof = bp.readByte()
         if eof {
-            // TODO: proper unexpected eof error
-            panic("unexpected eof")
+            return 0, EOF
         }
         switch(char) {
             case '\\':
@@ -175,6 +172,9 @@ func readString(bp *bufpos) (Token, error) {
         }
 
         char, err := readByteWithEscapeCode(bp)
+        if err == EOF {
+            return Token{}, (*NonTerminatedStringError)(bp.copyAt(initialPos))
+        }
         if err != nil {
             return Token{}, err
         }

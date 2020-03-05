@@ -49,6 +49,17 @@ func TestStrings(t *testing.T) {
     for k,v := range escapeSequences {
         t.Run("Escape Sequence '" + k + "'", testToken(`"` + k + `"`, StringToken, v))
     }
+
+    t.Run("Incomplete Escape Sequence", func(t *testing.T) {
+        _, errs := Lex([]byte(`"\`))
+        if len(errs) != 1 {
+            t.Fatal("Recieved", len(errs), "errors, expected 1")
+        }
+        _, ok := errs[0].(*NonTerminatedStringError)
+        if !ok {
+            t.Fatal("Unexpected error type")
+        }
+    })
 }
 
 func TestMultipleErrors(t *testing.T) {
